@@ -1,7 +1,7 @@
 
 
 
-RESTful WEB SERVICE RESOURCES	DESCRIPTION|
+|RESTful WEB SERVICE RESOURCE	| DESCRIPTION|
 | ----------------- | ---------------- |
 |/applicationnumbers	R|eturns a list of all NDA numbers.|
 |/drugclasses | Returns a list of all drug classes associated with at least one SPL in the Pharmacologic Class Indexing Files.|
