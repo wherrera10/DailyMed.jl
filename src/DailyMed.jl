@@ -29,7 +29,7 @@ function dailymed(restfunc, extra)
         req = HTTP.request("GET", url)
         doc = parsexml(String(req.body)).root
         meta = findfirst("//metadata", doc)
-        return doc, Dict(tag => xnodecontent(findfirst(tag, meta)) for tag in METATAGS)
+        return doc, Dict(tag => nodecontent(findfirst(tag, meta)) for tag in METATAGS)
     catch y
         @warn y
         return parsexml("<root></root>"), Dict()
@@ -46,7 +46,7 @@ and can be "application_number", "marketing_category_code", "setid", "pagesize",
 """
 function applicationnumbers(; extra = [])
     doc, metadict = dailymed("applicationnumbers.xml", extra)
-    return nodecontent.(findall("//application_numbers", doc)), metadict
+    return nodecontent.(findall("//application_number", doc)), metadict
 end
 
 """
@@ -59,13 +59,19 @@ extra is optional. If provided it should be a `Dict` or list of string `Pair`s,
 and can be "drug_class_code", "drugclass_coding_system", "code_class_type",
 "class_name", "unii_code", "pagesize", "page"
 """
-function drugclasses(; extra)
+function drugclasses(; extra = [])
     dctups = NamedTuple[]
-    doc, metadict = dailymed("drugclasses.xml", extra)
-    for dcl in findall("//drugclass", doc)
-        push!(dctups, (name = findfirst("name", dcl), code = findfirst("code", dcl)))
+    d, metadict = Dict(extra), Dict()
+    while true
+        doc, metadict = dailymed("drugclasses.xml", d)
+        for dcl in findall("//drugclass", doc)
+            push!(dctups, (name = nodecontent(findfirst("name", dcl)), code = nodecontent(findfirst("code", dcl))))
+        end
+        nextpage = tryparse(Int, get(metadict, "next_page", ""))
+        nextpage == nothing && break
+        d["page"] = string(nextpage)
     end
-    return dctups
+    return dctups, metadict
 end
 
 """
