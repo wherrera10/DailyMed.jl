@@ -4,11 +4,22 @@ National Library of Medicine's DailyMed service RESTful interface functions for 
 
 ## Examples
 
+    using DailyMed
+    
     a, meta = rxcuis(extra = ["page" => "725"])
     println(a[1])  # => (rxcui = "1365899", rxstring = "{21 (ETHINYL ESTRADIOL 0.035 MG / NORGESTIMATE 0.25 MG ORAL TABLET) / 7 (INERT INGREDIENTS 1 MG ORAL TABLET) } PACK [MONO-LINYAH 28 DAY]", rxtty = "BPCK")
 
     a, meta = history("9aa7140c-012c-4ea6-866d-4732e915dab6")
     println(first(a).spl_version)  # "3"
+
+    using Downloads, ImageView, Images, RxNav
+    load("phenytoin.jpg")
+    id = RxNav.rcui("phenytoin")
+    setid = first([x.setid for x in spls(extra = ["rxcui" => id])[1] if contains(x.title, "PARKE-DAVIS")])
+    url = media(setid)[1][1].url
+    Downloads.download(url, "phenytoin.jpg")
+    img = load("phenytoin.jpg")
+    imshow(img)
 
 <br /><br />
 
