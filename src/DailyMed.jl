@@ -1,6 +1,6 @@
 module DailyMed
 
-export applicationnumbers, drugclasses, ndcs, rxcuis, spls, spls_setid, history, media, ncds, packaging, uniis
+export applicationnumbers, drugclasses, drugnames, ndcs, rxcuis, spls, spls_setid, history, media, ncds, packaging, uniis
 
 using HTTP
 using EzXML
@@ -11,7 +11,7 @@ const METATAGS = ["total_elements", "elements_per_page", "total_pages", "current
     "current_url", "previous_page", "previous_page_url", "next_page", "next_page_url"]
 
 """
-    dailymed(restfunc, extra)
+    `dailymed(restfunc, extra)`
 
 Get and partially parse data from the url formed by `BASEURL * restfunc *`` expanded `extra` args
 """
@@ -37,7 +37,7 @@ function dailymed(restfunc, extra)
 end
 
 """
-    applicationnumbers(; extra = [])
+    `applicationnumbers(; extra = [])`
 
 Returns a list of all NDA numbers.
 
@@ -50,7 +50,7 @@ function applicationnumbers(; extra = [])
 end
 
 """
-    drugclasses(; extra = [])
+    `drugclasses(; extra = [])`
 
 Returns a list of all drug classes associated with at least one SPL in the
 Pharmacologic Class Indexing Files.
@@ -60,8 +60,7 @@ and can be "drug_class_code", "drugclass_coding_system", "code_class_type",
 "class_name", "unii_code", "pagesize", "page"
 """
 function drugclasses(; extra = [])
-    dctups = NamedTuple[]
-    d, metadict = Dict(extra), Dict()
+    dctups, d, metadict = NamedTuple[], Dict(extra), Dict()
     while true
         doc, metadict = dailymed("drugclasses.xml", d)
         for dcl in findall("//drugclass", doc)
@@ -75,29 +74,43 @@ function drugclasses(; extra = [])
 end
 
 """
-    drugnames(; extra = [])
+    `drugnames(; extra = [])`
 
-Returns a list of all drug names.
+Returns a list of all drug names. A <em>very large</em> string vector is returned, and the metadata
 
 extra is optional. If provided it should be a `Dict` or list of string `Pair`s,
 and can be "name_type", "manufacturer", "pagesize", "page"
 """
 function drugnames(; extra = [])
-    doc, metadict = dailymed("drugnames.xml", extra)
-    return nodecontent.(findall("//drug_name", doc)), metadict
+    dnames, d, metadict = String[], Dict(extra), Dict()
+    while true
+        doc, metadict = dailymed("drugnames.xml", d)
+        append!(dnames, nodecontent.(findall("//drug_name", doc)))
+        nextpage = tryparse(Int, get(metadict, "next_page", ""))
+        nextpage == nothing && break
+        d["page"] = string(nextpage) 
+    end
+    return dnames, metadict
 end
 
 """
-    function ndcs(; extra = [])
+    `function ndcs(; extra = [])`
 
 Returns a list of all NDC codes.
 
-extra is optional. If provided it should be a `Dict` or list of string `Pair`s,
-and can be "pagesize", "page"
+`extra` is optional. If provided it should be a `Dict` or list of string `Pair`s,
+and can be "pagesize" or "page"
 """
 function ndcs(; extra = [])
-    doc, metadict = dailymed("ndcs.xml", extra)
-    return nodecontent.(findall("//ndc", doc)), metadict
+    codes, d, metadict = String[], Dict(extra), Dict()
+    while true
+        doc, metadict = dailymed("ndcs.xml", d)
+        append!(codes, nodecontent.(findall("//ndc", doc)))
+        nextpage = tryparse(Int, get(metadict, "next_page", ""))
+        nextpage == nothing && break
+        d["page"] = string(nextpage)        
+    end
+    return codes, metadict
 end
 
 """
@@ -108,12 +121,17 @@ Returns a list of all product-level RxCUIs.
 extra is optional. If provided it should be a `Dict` or list of string `Pair`s,
 and can be "rxtty", "rxstring", "rxcui", "pagesize", "page"
 """
-function rxcuis(; extra = [])
-    dctups = NamedTuple[]
-    doc, metadict = dailymed("rxcuis.xml", extra)
-    for dcl in findall("//rxconcept", doc)
-        push!(dctups, (rxcui = findfirst("rxcui", dcl),
-            rxstring = findfirst("rxstring", dcl), rxtty = findfirst("rxtty", dcl)))
+function rxcuis(; extra = [])   
+    dctups, d, metadict = NamedTuple[], Dict(extra), Dict()
+    while true
+        doc, metadict = dailymed("rxcuis.xml", d)
+        for dcl in findall("//rxconcept", doc)
+            push!(dctups, (rxcui = nodecontent(findfirst("rxcui", dcl)), 
+                rxstring = nodecontent(findfirst("rxstring", dcl)), rxtty = nodecontent(findfirst("rxtty", dcl))))
+        end
+        nextpage = tryparse(Int, get(metadict, "next_page", ""))
+        nextpage == nothing && break
+        d["page"] = string(nextpage)
     end
     return dctups, metadict
 end
@@ -131,12 +149,17 @@ and can be "application_number", "boxed_warning", "dea_schedule_code", "doctype"
 "published_date_comparison", "rxcui", "setid", "unii_code", "pagesize", "page"
 """
 function spls(; extra = [])
-    dctups = NamedTuple[]
-    doc, metadict = dailymed("spls.xml", extra)
-    for dcl in findall("//spl", doc)
-        push!(dctups, (setid = findfirst("setid", dcl),
-            spl_version = findfirst("spl_version", dcl), title = findfirst("title", dcl),
-            published_date = findfirst("published_date", dcl)))
+    dctups, d, metadict = NamedTuple[], Dict(extra), Dict()
+    while true
+        doc, metadict = dailymed("spls.xml", extra)
+        for dcl in findall("//spl", doc)
+            push!(dctups, (setid = findfirst("setid", dcl),
+                spl_version = findfirst("spl_version", dcl), title = findfirst("title", dcl),
+                published_date = findfirst("published_date", dcl)))
+        end
+        nextpage = tryparse(Int, get(metadict, "next_page", ""))
+        nextpage == nothing && break
+        d["page"] = string(nextpage)
     end
     return dctups, metadict
 end
@@ -165,11 +188,16 @@ extra is optional. If provided it should be a `Dict` or list of string `Pair`s,
 and can be "pagesize", "page"
 """
 function history(setid; extra)
-    dctups = NamedTuple[]
-    doc, metadict = dailymed("spls/$(setid)/history.xml", extra)
-    for dcl in findall("//history_entry", doc)
-        push!(dctups, (setid = findfirst("setid", dcl),
-            spl_version = findfirst("spl_version", dcl), published_date = findfirst("published_date", dcl)))
+    dctups, d, metadict = NamedTuple[], Dict(extra), Dict()
+    while true
+        doc, metadict = dailymed("spls/$(setid)/history.xml", extra)
+        for dcl in findall("//history_entry", doc)
+            push!(dctups, (setid = findfirst("setid", dcl),
+                spl_version = findfirst("spl_version", dcl), published_date = findfirst("published_date", dcl)))
+        end
+        nextpage = tryparse(Int, get(metadict, "next_page", ""))
+        nextpage == nothing && break
+        d["page"] = string(nextpage)    
     end
     return dctups, metadict
 end
@@ -183,11 +211,16 @@ Returns links to all media for specific SET ID.
 and can be "pagesize", "page"
 """
 function media(setid; extra)
-    dctups = NamedTuple[]
-    doc, metadict = dailymed("spls/$(setid)/media.xml", extra)
-    for dcl in findall("//file", doc)
-        push!(dctups, (name = findfirst("name", dcl),
-            mime_type = findfirst("mime_type", dcl), url = findfirst("url", dcl)))
+    dctups, d, metadict = NamedTuple[], Dict(extra), Dict()
+    while true
+        doc, metadict = dailymed("spls/$(setid)/media.xml", extra)
+        for dcl in findall("//file", doc)
+            push!(dctups, (name = findfirst("name", dcl),
+                mime_type = findfirst("mime_type", dcl), url = findfirst("url", dcl)))
+        end
+        nextpage = tryparse(Int, get(metadict, "next_page", ""))
+        nextpage == nothing && break
+        d["page"] = string(nextpage)
     end
     return dctups, metadict
 end
@@ -201,15 +234,21 @@ Returns all ndcs for specific SET ID.
 and can be "pagesize", "page"
 """
 function ndcs(setid; extra = [])
-    doc, metadict = dailymed("spls/$(setid)/ndcs.xml", extra)
-    return nodecontent.(findall("//ndc", doc))
+    nds, d, metadict = String[], Dict(extra), Dict()
+    while true
+        doc, metadict = dailymed("spls/$(setid)/ndcs.xml", extra)
+        append!(nds, nodecontent.(findall("//ndc", doc)))
+        nextpage = tryparse(Int, get(metadict, "next_page", ""))
+        nextpage == nothing && break
+        d["page"] = string(nextpage)
+    end
 end
 
 """
     function packaging(setid; extra = [])
 
 Return the XML string for the packaging of the item with the given setid.
-The packaging XML is highlt variable in labeling nd may be deeply nested, so an array
+The packaging XML is highly variable in labeling and may be deeply nested, so an array
 or tuple is not computed, but instead the XML itself is returned.
 
 `extra` is optional. If provided it should be a `Dict` or list of string `Pair`s,
@@ -217,12 +256,20 @@ and can be "pagesize", "page"
 """
 function packaging(setid; pagesize = 100, page = 1)
     url = BASEURL * "spls/$(setid)/packaging.xml?pagesize=$pagesize&page=$page"
+    allpages, d, metadict = "", Dict(extra), Dict()
     try
-        req = HTTP.request("GET", url)
-        return String(req.body)
+        while true
+            doc, metadict = dailymed("spls/$(setid)/packaging.xml", extra)
+            req = HTTP.request("GET", url)
+            allpages *= String(doc)
+            nextpage = tryparse(Int, get(metadict, "next_page", ""))
+            nextpage == nothing && break
+            d["page"] = string(nextpage)
+        end
     catch y
-        return "<xml>$y</xml>"
+        @warn y
     end
+    return allpages
 end
 
 """
@@ -235,11 +282,16 @@ and can be "active_moiety", "drug_class_code", "drug_class_coding_system",
 "rxcui", "unii_code", "pagesize", "page"
 """
 function uniis(; extra = [])
-    dctups = NamedTuple[]
-    doc, metadict = dailymed("uniis.xml", extra)
-    for dcl in findall("//unii", doc)
-        push!(dctups, (unii_code = findfirst("unii_code", dcl),
-            active_moiety = findfirst("active_moiety", dcl)))
+    dctups, d, metadict = NamedTuple[], Dict(extra), Dict()
+    while true
+        doc, metadict = dailymed("uniis.xml", extra)
+        for dcl in findall("//unii", doc)
+            push!(dctups, (unii_code = findfirst("unii_code", dcl),
+                active_moiety = findfirst("active_moiety", dcl)))
+        end
+        nextpage = tryparse(Int, get(metadict, "next_page", ""))
+        nextpage == nothing && break
+        d["page"] = string(nextpage)
     end
     return dctups, metadict
 end
