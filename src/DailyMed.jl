@@ -45,8 +45,15 @@ extra is optional. If provided it should be a `Dict` or list of string `Pair`s,
 and can be "application_number", "marketing_category_code", "setid", "pagesize", "page"
 """
 function applicationnumbers(; extra = [])
-    doc, metadict = dailymed("applicationnumbers.xml", extra)
-    return nodecontent.(findall("//application_number", doc)), metadict
+    appnums, d, metadict = String[], Dict(extra), Dict()
+    while true
+        doc, metadict = dailymed("applicationnumbers.xml", d)
+        append!(appnums, nodecontent.(findall("//application_number", doc)))
+        nextpage = tryparse(Int, get(metadict, "next_page", ""))
+        nextpage == nothing && break
+        d["page"] = string(nextpage)
+    end
+    return appnums, metadict
 end
 
 """
@@ -151,7 +158,7 @@ and can be "application_number", "boxed_warning", "dea_schedule_code", "doctype"
 function spls(; extra = [])
     dctups, d, metadict = NamedTuple[], Dict(extra), Dict()
     while true
-        doc, metadict = dailymed("spls.xml", extra)
+        doc, metadict = dailymed("spls.xml", d)
         for dcl in findall("//spl", doc)
             push!(dctups, (setid = findfirst("setid", dcl),
                 spl_version = findfirst("spl_version", dcl), title = findfirst("title", dcl),
@@ -190,7 +197,7 @@ and can be "pagesize", "page"
 function history(setid; extra)
     dctups, d, metadict = NamedTuple[], Dict(extra), Dict()
     while true
-        doc, metadict = dailymed("spls/$(setid)/history.xml", extra)
+        doc, metadict = dailymed("spls/$(setid)/history.xml", d)
         for dcl in findall("//history_entry", doc)
             push!(dctups, (setid = findfirst("setid", dcl),
                 spl_version = findfirst("spl_version", dcl), published_date = findfirst("published_date", dcl)))
@@ -213,7 +220,7 @@ and can be "pagesize", "page"
 function media(setid; extra)
     dctups, d, metadict = NamedTuple[], Dict(extra), Dict()
     while true
-        doc, metadict = dailymed("spls/$(setid)/media.xml", extra)
+        doc, metadict = dailymed("spls/$(setid)/media.xml", d)
         for dcl in findall("//file", doc)
             push!(dctups, (name = findfirst("name", dcl),
                 mime_type = findfirst("mime_type", dcl), url = findfirst("url", dcl)))
@@ -236,7 +243,7 @@ and can be "pagesize", "page"
 function ndcs(setid; extra = [])
     nds, d, metadict = String[], Dict(extra), Dict()
     while true
-        doc, metadict = dailymed("spls/$(setid)/ndcs.xml", extra)
+        doc, metadict = dailymed("spls/$(setid)/ndcs.xml", d)
         append!(nds, nodecontent.(findall("//ndc", doc)))
         nextpage = tryparse(Int, get(metadict, "next_page", ""))
         nextpage == nothing && break
@@ -259,7 +266,7 @@ function packaging(setid; pagesize = 100, page = 1)
     allpages, d, metadict = "", Dict(extra), Dict()
     try
         while true
-            doc, metadict = dailymed("spls/$(setid)/packaging.xml", extra)
+            doc, metadict = dailymed("spls/$(setid)/packaging.xml", d)
             req = HTTP.request("GET", url)
             allpages *= String(doc)
             nextpage = tryparse(Int, get(metadict, "next_page", ""))
@@ -284,7 +291,7 @@ and can be "active_moiety", "drug_class_code", "drug_class_coding_system",
 function uniis(; extra = [])
     dctups, d, metadict = NamedTuple[], Dict(extra), Dict()
     while true
-        doc, metadict = dailymed("uniis.xml", extra)
+        doc, metadict = dailymed("uniis.xml", d)
         for dcl in findall("//unii", doc)
             push!(dctups, (unii_code = findfirst("unii_code", dcl),
                 active_moiety = findfirst("active_moiety", dcl)))
