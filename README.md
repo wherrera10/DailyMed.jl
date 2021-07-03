@@ -31,8 +31,21 @@ The API uses the function names of the DailyMed REST API, as seen at
 |/uniis | Returns a list of all UNIIs.|
 
 
-##  Installation
+## Installation
+                                   
+You may install the package from Github in the usual way:
+<br />
 
-<br /><br />
-
-
+    # press ] to go to Pkg mode
+  
+    pkg> add DailyMed
+      
+ <br />
+  
+ Or, to install the current master copy:
+    
+    using Pkg
+    Pkg.add("http://github.com/wherrera10/DailyMed.jl")                          
+  
+ <br /> 
+ 
