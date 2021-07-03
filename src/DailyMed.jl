@@ -8,7 +8,7 @@ using EzXML
 const BASEURL = "https://dailymed.nlm.nih.gov/dailymed/services/v2/"
 
 const METATAGS = ["total_elements", "elements_per_page", "total_pages", "current_page",
-    "current_url", "previous_page", "previous_page_url", "next_page", "next_page_url"]
+    "current_url", "previous_page", "previous_page_url", "next_page", "next_page_url", "db_published_date"]
 
 """
     `dailymed(restfunc, extra)`
@@ -29,7 +29,13 @@ function dailymed(restfunc, extra)
         req = HTTP.request("GET", url)
         doc = parsexml(String(req.body)).root
         meta = findfirst("//metadata", doc)
-        return doc, Dict(tag => nodecontent(findfirst(tag, meta)) for tag in METATAGS)
+        metatags = Dict{String, String}()
+        for tag in METATAGS
+            if (x = findfirst(tag, meta)) != nothing
+                metatags[tag] = nodecontent(x)
+            end
+        end
+        return doc, metatags
     catch y
         @warn y
         return parsexml("<root></root>"), Dict()
@@ -71,7 +77,8 @@ function drugclasses(; extra = [])
     while true
         doc, metadict = dailymed("drugclasses.xml", d)
         for dcl in findall("//drugclass", doc)
-            push!(dctups, (name = nodecontent(findfirst("name", dcl)), code = nodecontent(findfirst("code", dcl))))
+            push!(dctups, (name = nodecontent(findfirst("name", dcl)), 
+                           code = nodecontent(findfirst("code", dcl))))
         end
         nextpage = tryparse(Int, get(metadict, "next_page", ""))
         nextpage == nothing && break
@@ -134,7 +141,8 @@ function rxcuis(; extra = [])
         doc, metadict = dailymed("rxcuis.xml", d)
         for dcl in findall("//rxconcept", doc)
             push!(dctups, (rxcui = nodecontent(findfirst("rxcui", dcl)), 
-                rxstring = nodecontent(findfirst("rxstring", dcl)), rxtty = nodecontent(findfirst("rxtty", dcl))))
+                rxstring = nodecontent(findfirst("rxstring", dcl)),
+                rxtty = nodecontent(findfirst("rxtty", dcl))))
         end
         nextpage = tryparse(Int, get(metadict, "next_page", ""))
         nextpage == nothing && break
@@ -160,9 +168,10 @@ function spls(; extra = [])
     while true
         doc, metadict = dailymed("spls.xml", d)
         for dcl in findall("//spl", doc)
-            push!(dctups, (setid = findfirst("setid", dcl),
-                spl_version = findfirst("spl_version", dcl), title = findfirst("title", dcl),
-                published_date = findfirst("published_date", dcl)))
+            push!(dctups, (setid = nodecontent(findfirst("setid", dcl)),
+                spl_version = nodecontent(findfirst("spl_version", dcl)),
+                title = nodecontent(findfirst("title", dcl)),
+                published_date = nodecontent(findfirst("published_date", dcl))))
         end
         nextpage = tryparse(Int, get(metadict, "next_page", ""))
         nextpage == nothing && break
@@ -177,12 +186,12 @@ end
 Returns an SPL document for specific SET ID.
 """
 function spls_setid(setid)
-    url = BASEURL * "spls/$(setid).xml"
+    url, metadict = BASEURL * "spls/$setid.xml", Dict()
     try
         req = HTTP.request("GET", url)
-        return String(req.body)
+        return String(req.body), metadict
     catch y
-        return "<xml>$y</xml>"
+        return "<xml>$y</xml>", metadict
     end
 end
 
@@ -194,13 +203,13 @@ Returns version history for specific SET ID.
 extra is optional. If provided it should be a `Dict` or list of string `Pair`s,
 and can be "pagesize", "page"
 """
-function history(setid; extra)
+function history(setid; extra = [])
     dctups, d, metadict = NamedTuple[], Dict(extra), Dict()
     while true
         doc, metadict = dailymed("spls/$(setid)/history.xml", d)
-        for dcl in findall("//history_entry", doc)
-            push!(dctups, (setid = findfirst("setid", dcl),
-                spl_version = findfirst("spl_version", dcl), published_date = findfirst("published_date", dcl)))
+        for dcl in findall("//history/history_entry", doc)
+            push!(dctups, (spl_version = nodecontent(findfirst("spl_version", dcl)),
+                           published_date = nodecontent(findfirst("published_date", dcl))))
         end
         nextpage = tryparse(Int, get(metadict, "next_page", ""))
         nextpage == nothing && break
@@ -217,13 +226,14 @@ Returns links to all media for specific SET ID.
 `extra` is optional. If provided it should be a `Dict` or list of string `Pair`s,
 and can be "pagesize", "page"
 """
-function media(setid; extra)
+function media(setid; extra = [])
     dctups, d, metadict = NamedTuple[], Dict(extra), Dict()
     while true
         doc, metadict = dailymed("spls/$(setid)/media.xml", d)
         for dcl in findall("//file", doc)
-            push!(dctups, (name = findfirst("name", dcl),
-                mime_type = findfirst("mime_type", dcl), url = findfirst("url", dcl)))
+            push!(dctups, (name = nodecontent(findfirst("name", dcl)),
+                mime_type = nodecontent(findfirst("mime_type", dcl)),
+                url = nodecontent(findfirst("url", dcl))))
         end
         nextpage = tryparse(Int, get(metadict, "next_page", ""))
         nextpage == nothing && break
@@ -243,12 +253,13 @@ and can be "pagesize", "page"
 function ndcs(setid; extra = [])
     nds, d, metadict = String[], Dict(extra), Dict()
     while true
-        doc, metadict = dailymed("spls/$(setid)/ndcs.xml", d)
-        append!(nds, nodecontent.(findall("//ndc", doc)))
+        doc, metadict = dailymed("spls/$setid/ndcs.xml", d)
+        append!(nds, nodecontent.(findall("//ndcs/ndc", doc)))
         nextpage = tryparse(Int, get(metadict, "next_page", ""))
         nextpage == nothing && break
         d["page"] = string(nextpage)
     end
+    return nds, metadict
 end
 
 """
@@ -261,14 +272,12 @@ or tuple is not computed, but instead the XML itself is returned.
 `extra` is optional. If provided it should be a `Dict` or list of string `Pair`s,
 and can be "pagesize", "page"
 """
-function packaging(setid; pagesize = 100, page = 1)
-    url = BASEURL * "spls/$(setid)/packaging.xml?pagesize=$pagesize&page=$page"
+function packaging(setid; extra = [])
     allpages, d, metadict = "", Dict(extra), Dict()
     try
         while true
-            doc, metadict = dailymed("spls/$(setid)/packaging.xml", d)
-            req = HTTP.request("GET", url)
-            allpages *= String(doc)
+            doc, metadict = dailymed("spls/$setid/packaging.xml", d)
+            allpages *= string(findfirst("//products", doc))  
             nextpage = tryparse(Int, get(metadict, "next_page", ""))
             nextpage == nothing && break
             d["page"] = string(nextpage)
@@ -276,7 +285,7 @@ function packaging(setid; pagesize = 100, page = 1)
     catch y
         @warn y
     end
-    return allpages
+    return allpages, metadict
 end
 
 """
@@ -293,8 +302,8 @@ function uniis(; extra = [])
     while true
         doc, metadict = dailymed("uniis.xml", d)
         for dcl in findall("//unii", doc)
-            push!(dctups, (unii_code = findfirst("unii_code", dcl),
-                active_moiety = findfirst("active_moiety", dcl)))
+            push!(dctups, (unii_code = nodecontent(findfirst("unii_code", dcl)),
+                active_moiety = nodecontent(findfirst("active_moiety", dcl))))
         end
         nextpage = tryparse(Int, get(metadict, "next_page", ""))
         nextpage == nothing && break
