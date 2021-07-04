@@ -36,6 +36,11 @@ of strings to be assigned to that value in the final URL request. For example,
 would be translated to 
     `"&sources=ACTIVE+OBSOLETE&toReturn=25&page=3"` 
 in the REST call request string sent by HTTP.
+<br /><br />
+
+All functions return both data and metadata as a tuple (data, metadata), so you should reference the data returned as 
+`classes[1]` in the call `classes[1] = drugclasses()`. In addition, the data is generally returned as a vector of `String`s
+or `NamedTuple`s, so to reference the first class returned from drugclasses() you would need to write `class = drugclasses()[1][1]`.
 
 <br /><br />
 
