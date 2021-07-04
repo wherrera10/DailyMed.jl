@@ -12,17 +12,18 @@ const METATAGS = ["total_elements", "elements_per_page", "total_pages", "current
     "current_url", "previous_page", "previous_page_url", "next_page", "next_page_url", "db_published_date"]
 
 """
-    `allsetids(resource::String)`
+    `allsetids(resource)`
     
 Given a resource which is either an RxCUI id or the name of a drug, return a vector
 of all of the DailyMed Set ID identifiers for the resouce. These can then be used for
 the functions `history`, `media`, `ndcs`, or `packaging`.
 """
-function allsetids(resource)
+function allsetids(resource::String)
     rxcu = RxNav.is_in_rxcui_format(resource) ? resource : RxNav.rcui(resource)
     setids = [x.setid for x in first(spls(extra = ["rxcui" => rxcu]))]
     return setids
 end
+allsetids(resource) = allsetids(string(resource))
 
 """
     `dailymed(restfunc, extra)`
