@@ -53,6 +53,8 @@ or `NamedTuple`s, so to reference the first class returned from drugclasses() yo
 
 <br /><br />
 
+###    API
+
 The Julia module uses the same function names used by the DailyMed REST API, as seen at
 #### https://dailymed.nlm.nih.gov/dailymed/app-support-web-services.cfm.
 
