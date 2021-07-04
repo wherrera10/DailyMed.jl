@@ -26,7 +26,7 @@ National Library of Medicine's DailyMed service RESTful interface functions for 
 
 ## Functions
 
-####    allsetids(resource::String)
+####    allsetids(resource)
     
 Given a resource which is either an RxCUI id or the name of a drug, return a vector
 of all of the DailyMed Set ID identifiers for the resouce. These can then be used for
