@@ -21,7 +21,7 @@ National Library of Medicine's DailyMed service RESTful interface functions for 
     img = load("phenytoin.jpg")
     imshow(img)
 
-<br /><br />
+<br /><br /><br />
 
 ## Functions
 
@@ -64,7 +64,7 @@ The Julia module uses the same function names used by the DailyMed REST API, as 
 
 <br /><br />
 
-    `dailymed(restfunc, extra)`
+####    dailymed(restfunc, extra)
 
 Get and partially parse data from the url formed by `BASEURL * restfunc *`` expanded `extra` args
 
@@ -72,7 +72,7 @@ Returns a 2-tuple: (an EzXML parsed root document, and a Dict of meta data)
 <br /><br />
 
 
-    `applicationnumbers(; extra = [])`
+####    applicationnumbers(; extra = [])
 
 Returns a list of all NDA numbers.
 
@@ -82,7 +82,7 @@ and can be "application_number", "marketing_category_code", "setid", "pagesize",
 Returns a 2-tuple: (an vector of Strings of returns application numbers, and a Dict of meta data)
 <br /><br />
 
-    `drugclasses(; extra = [])`
+####    drugclasses(; extra = [])
 
 Returns a list of all drug classes associated with at least one SPL in the
 Pharmacologic Class Indexing Files.
@@ -94,7 +94,7 @@ and can be "drug_class_code", "drugclass_coding_system", "code_class_type",
 Returns a 2-tuple: (a vector of Tuples(name, code), and a Dict of meta data)
 <br /><br />
 
-    `drugnames(; extra = [])`
+####    drugnames(; extra = [])
 
 Returns a list of all drug names. A <em>very large</em> string vector is returned, and the metadata
 
@@ -104,7 +104,7 @@ and can be "name_type", "manufacturer", "pagesize", "page"
 Returns a 2-tuple: (a String vector of names, and a Dict of meta data)
 <br /><br />
 
-    `function ndcs(; extra = [])`
+####    function ndcs(; extra = [])
 
 Returns a list of all NDC codes.
 
@@ -114,7 +114,7 @@ and can be "pagesize" or "page"
 Returns a 2-tuple: (a String vector of codes, and a Dict of meta data)
 <br /><br />
 
-    function rxcuis(; extra = [])
+####    function rxcuis(; extra = [])
 
 Returns a list of all product-level RxCUIs.
 
@@ -124,7 +124,7 @@ and can be "rxtty", "rxstring", "rxcui", "pagesize", "page"
 Returns a 2-tuple: (a vector of Tuples(rxcui, rxstring, rxtty), and a Dict of meta data)
 <br /><br />
 
-    function spls(; extra = [])
+####    function spls(; extra = [])
 
 Returns a list of all SPLs.
 
@@ -137,12 +137,12 @@ and can be "application_number", "boxed_warning", "dea_schedule_code", "doctype"
 Returns a 2-tuple: (a vector of Tuples(setid, spl_version, published_date), and a Dict of meta data)
 <br /><br />
 
-    function function spls_setid(setid)
+####    function function spls_setid(setid)
 
 Returns an 2-tuple of the SPL document for specific SET ID, and a (blank) meta dict.
 <br /><br />
 
-    function history(setid; extra)
+####    function history(setid; extra)
 
 Returns version history for specific SET ID.
 
@@ -152,7 +152,7 @@ and can be "pagesize", "page"
 Returns a 2-tuple: (a vector of Tuples(spl_version, published_date), and a Dict of meta data)
 <br /><br />
 
-    function media(setid; extra = [])
+####    function media(setid; extra = [])
 
 Returns links to all media for specific SET ID.
 
@@ -162,7 +162,7 @@ and can be "pagesize", "page"
 Returns a 2-tuple: (a vector of Tuples(name, mime_type, url), and a Dict of meta data)
 <br /><br />
 
-    function ndcs(setid; extra = [])
+####    function ndcs(setid; extra = [])
 
 Returns all ndcs for specific SET ID.
 
@@ -172,7 +172,7 @@ and can be "pagesize", "page"
 Returns a 2-tuple: (a String vector of NDC codes, and a Dict of meta data)
 <br /><br />
 
-    function packaging(setid; extra = [])
+####    function packaging(setid; extra = [])
 
 Return the XML string for the packaging of the item with the given setid.
 The packaging XML is highly variable in labeling and may be deeply nested, so an array
@@ -184,7 +184,7 @@ and can be "pagesize", "page"
 Returns a 2-tuple: (a string of the XML returned, and a Dict of meta data)
 <br /><br />
 
-    function uniis(; extra = [])
+####    function uniis(; extra = [])
 
 Returns a list of all UNIIs.
 
@@ -193,9 +193,7 @@ and can be "active_moiety", "drug_class_code", "drug_class_coding_system",
 "rxcui", "unii_code", "pagesize", "page"
 
 Returns a 2-tuple: (a vector of Tuples(unii_code, active_moiety), and a Dict of meta data)
-<br /><br />
-
-
+<br /><br /><br />
 
 ## Installation
                                    
@@ -213,5 +211,5 @@ You may install the package from Github in the usual way:
     using Pkg
     Pkg.add("http://github.com/wherrera10/DailyMed.jl")                          
   
- <br /> 
+ <br /><br />
  
