@@ -25,11 +25,22 @@ National Library of Medicine's DailyMed service RESTful interface functions for 
 
 ## Functions
 
+Note:  Most of the functions take optional arguments. For details of the values for such arguments 
+you should consult the NLM documentation at https://dailymed.nlm.nih.gov/dailymed/app-support-web-services.cfm.
+
+If the function takes an optional argument called `extra`, this means that the function's optional 
+argument `extra` should be provided as a `Dict` or as a `Vector` of `Pairs`, with the keys to the 
+Dict being the label for the optional term and the values for that key as either a string or a vector
+of strings to be assigned to that value in the final URL request. For example, 
+    `extra = Dict("sources" => ["ACTIVE", "OBSOLETE"], "toReturn" => 25, page => 3)`
+would be translated to 
+    `"&sources=ACTIVE+OBSOLETE&toReturn=25&page=3"` 
+in the REST call request string sent by HTTP.
+
 <br /><br />
 
-
-The API uses the function names of the DailyMed REST API, as seen at
-<link />
+The Julia module uses the same function names used by the DailyMed REST API, as seen at
+#### https://dailymed.nlm.nih.gov/dailymed/app-support-web-services.cfm.
 
 | RESTful WEB SERVICE RESOURCES	| DESCRIPTION |
 | ----------------- | ---------------- |
@@ -45,6 +56,140 @@ The API uses the function names of the DailyMed REST API, as seen at
 |/spls/{SETID}/ndcs | Returns all ndcs for specific SET ID.|
 |/spls/{SETID}/packaging | Returns all product packaging descriptions for specific SET ID.|
 |/uniis | Returns a list of all UNIIs.|
+
+<br /><br />
+
+    `dailymed(restfunc, extra)`
+
+Get and partially parse data from the url formed by `BASEURL * restfunc *`` expanded `extra` args
+
+Returns a 2-tuple: (an EzXML parsed root document, and a Dict of meta data)
+<br /><br />
+
+
+    `applicationnumbers(; extra = [])`
+
+Returns a list of all NDA numbers.
+
+extra is optional. If provided it should be a `Dict` or list of string `Pair`s,
+and can be "application_number", "marketing_category_code", "setid", "pagesize", "page"
+
+Returns a 2-tuple: (an vector of Strings of returns application numbers, and a Dict of meta data)
+<br /><br />
+
+    `drugclasses(; extra = [])`
+
+Returns a list of all drug classes associated with at least one SPL in the
+Pharmacologic Class Indexing Files.
+
+extra is optional. If provided it should be a `Dict` or list of string `Pair`s,
+and can be "drug_class_code", "drugclass_coding_system", "code_class_type",
+"class_name", "unii_code", "pagesize", "page"
+
+Returns a 2-tuple: (a vector of Tuples(name, code), and a Dict of meta data)
+<br /><br />
+
+    `drugnames(; extra = [])`
+
+Returns a list of all drug names. A <em>very large</em> string vector is returned, and the metadata
+
+extra is optional. If provided it should be a `Dict` or list of string `Pair`s,
+and can be "name_type", "manufacturer", "pagesize", "page"
+
+Returns a 2-tuple: (a String vector of names, and a Dict of meta data)
+<br /><br />
+
+    `function ndcs(; extra = [])`
+
+Returns a list of all NDC codes.
+
+`extra` is optional. If provided it should be a `Dict` or list of string `Pair`s,
+and can be "pagesize" or "page"
+
+Returns a 2-tuple: (a String vector of codes, and a Dict of meta data)
+<br /><br />
+
+    function rxcuis(; extra = [])
+
+Returns a list of all product-level RxCUIs.
+
+extra is optional. If provided it should be a `Dict` or list of string `Pair`s,
+and can be "rxtty", "rxstring", "rxcui", "pagesize", "page"
+
+Returns a 2-tuple: (a vector of Tuples(rxcui, rxstring, rxtty), and a Dict of meta data)
+<br /><br />
+
+    function spls(; extra = [])
+
+Returns a list of all SPLs.
+
+extra is optional. If provided it should be a `Dict` or list of string `Pair`s,
+and can be "application_number", "boxed_warning", "dea_schedule_code", "doctype",
+"drug_class_code", "drugclass_coding_system", "drug_name", "name_type", "labeler",
+"manufacturer", "marketing_category_code", "ndc", "published_date",
+"published_date_comparison", "rxcui", "setid", "unii_code", "pagesize", "page"
+
+Returns a 2-tuple: (a vector of Tuples(setid, spl_version, published_date), and a Dict of meta data)
+<br /><br />
+
+    function function spls_setid(setid)
+
+Returns an 2-tuple of the SPL document for specific SET ID, and a (blank) meta dict.
+<br /><br />
+
+    function history(setid; extra)
+
+Returns version history for specific SET ID.
+
+extra is optional. If provided it should be a `Dict` or list of string `Pair`s,
+and can be "pagesize", "page"
+
+Returns a 2-tuple: (a vector of Tuples(spl_version, published_date), and a Dict of meta data)
+<br /><br />
+
+    function media(setid; extra = [])
+
+Returns links to all media for specific SET ID.
+
+`extra` is optional. If provided it should be a `Dict` or list of string `Pair`s,
+and can be "pagesize", "page"
+
+Returns a 2-tuple: (a vector of Tuples(name, mime_type, url), and a Dict of meta data)
+<br /><br />
+
+    function ndcs(setid; extra = [])
+
+Returns all ndcs for specific SET ID.
+
+`extra` is optional. If provided it should be a `Dict` or list of string `Pair`s,
+and can be "pagesize", "page"
+
+Returns a 2-tuple: (a String vector of NDC codes, and a Dict of meta data)
+<br /><br />
+
+    function packaging(setid; extra = [])
+
+Return the XML string for the packaging of the item with the given setid.
+The packaging XML is highly variable in labeling and may be deeply nested, so an array
+or tuple is not computed, but instead the XML itself is returned.
+
+`extra` is optional. If provided it should be a `Dict` or list of string `Pair`s,
+and can be "pagesize", "page"
+
+Returns a 2-tuple: (a string of the XML returned, and a Dict of meta data)
+<br /><br />
+
+    function uniis(; extra = [])
+
+Returns a list of all UNIIs.
+
+`extra` is optional. If provided it should be a `Dict` or list of string `Pair`s,
+and can be "active_moiety", "drug_class_code", "drug_class_coding_system",
+"rxcui", "unii_code", "pagesize", "page"
+
+Returns a 2-tuple: (a vector of Tuples(unii_code, active_moiety), and a Dict of meta data)
+<br /><br />
+
 
 
 ## Installation
