@@ -1,5 +1,7 @@
 # DailyMed.jl
 
+[![Build Status](https://www.travis-ci.com/wherrera10/DailyMed.jl.svg?branch=main)](https://www.travis-ci.com/wherrera10/DailyMed.jl)
+
 National Library of Medicine's DailyMed service RESTful interface functions for Julia
 
 <img src="https://github.com/wherrera10/DailyMed.jl/blob/main/docs/src/dm_logo.png">
