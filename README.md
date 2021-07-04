@@ -15,7 +15,6 @@ National Library of Medicine's DailyMed service RESTful interface functions for 
     println(first(a).spl_version)  # "3"
 
     using Downloads, ImageView, Images, RxNav
-    load("phenytoin.jpg")
     id = RxNav.rcui("phenytoin")
     setid = first([x.setid for x in spls(extra = ["rxcui" => id])[1] if contains(x.title, "PARKE-DAVIS")])
     url = media(setid)[1][1].url
@@ -27,7 +26,15 @@ National Library of Medicine's DailyMed service RESTful interface functions for 
 
 ## Functions
 
-Note:  Most of the functions take optional arguments. For details of the values for such arguments 
+####    allsetids(resource::String)
+    
+Given a resource which is either an RxCUI id or the name of a drug, return a vector
+of all of the DailyMed Set ID identifiers for the resouce. These can then be used for
+various functions that need a Set ID argument, including the functions `history`, `media`,
+`ndcs`, and `packaging`.
+<br /><br />
+
+Note:  Most of the following functions take optional arguments. For details of the values for such arguments 
 you should consult the NLM documentation at https://dailymed.nlm.nih.gov/dailymed/app-support-web-services.cfm.
 
 If the function takes an optional argument called `extra`, this means that the function's optional 
