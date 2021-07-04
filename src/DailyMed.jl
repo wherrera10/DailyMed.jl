@@ -37,7 +37,8 @@ function dailymed(restfunc, extra)
         end
         return doc, metatags
     catch y
-        @warn y
+        # warn if it is likely to have been our error, just return if it was internal to REST code on server
+        !contains(string(y), "Internal Server Error") && @warn y
         return parsexml("<root></root>"), Dict()
     end
 end
