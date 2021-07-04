@@ -51,7 +51,7 @@ in the REST call request string sent by HTTP.
 <br /><br />
 
 All functions return both data and metadata as a tuple (data, metadata), so you should reference the data returned as 
-`classes[1]` in the call `classes[1] = drugclasses()`. In addition, the data is generally returned as a vector of `String`s
+`classes[1]` in the call `classes = drugclasses()`. In addition, the data is generally returned as a vector of `String`s
 or `NamedTuple`s, so to reference the first class returned from drugclasses() you would need to write `class = drugclasses()[1][1]`.
 
 <br /><br />
