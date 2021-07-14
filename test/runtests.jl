@@ -9,7 +9,7 @@ a, meta = drugclasses()
 @test first(first(a).name) == '4'
 
 a, meta = drugnames(extra = ["page" => "930"])
-@test first(a)[1:11] == "ZIPRASIDONE"
+@test first(a)[1:2] == "ZI"
 
 a, meta = ndcs(extra = ["page" => "3600"])
 @test last(a) == "W4215-S1393-01"
