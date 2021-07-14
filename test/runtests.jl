@@ -15,7 +15,7 @@ a, meta = ndcs(extra = ["page" => "3600"])
 @test last(a) == "W4215-S1393-01"
 
 a, meta = rxcuis(extra = ["page" => "725"])
-@test first(a).rxstring[2:3] == "21"
+@test first(a).rxstring[2:3] == "1 "
 
 a, meta = spls(extra = ["rxcui" => "312962"])
 first(a).title == "SIM"
