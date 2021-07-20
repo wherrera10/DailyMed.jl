@@ -2,6 +2,7 @@
 
 [![Build Status](https://www.travis-ci.com/wherrera10/DailyMed.jl.svg?branch=main)](https://www.travis-ci.com/wherrera10/DailyMed.jl)
 [![Build status](https://ci.appveyor.com/api/projects/status/4700rlbg5bsd8v33?svg=true)](https://ci.appveyor.com/project/wherrera10/dailymed-jl)
+[![CI](https://github.com/wherrera10/DailyMed.jl/actions/workflows/ci.yml/badge.svg)](https://github.com/wherrera10/DailyMed.jl/actions/workflows/ci.yml)
 
 National Library of Medicine's DailyMed service RESTful interface functions for Julia
 
