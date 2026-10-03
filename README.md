@@ -6,6 +6,8 @@ National Library of Medicine's DailyMed service RESTful interface functions for 
 
 <img src="https://github.com/wherrera10/DailyMed.jl/blob/main/docs/src/dm_logo.png">
 
+[![Build Status](https://github.com/wherrera10/DailyMed.jl/workflows/CI/badge.svg)](https://github.com/wherrera10/DailyMed.jl/actions)
+
 ## Examples
 
     using DailyMed
